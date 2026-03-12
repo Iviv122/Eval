@@ -1,0 +1,183 @@
+import { tokenize, TokenType, type Token } from "./lexer";
+
+type Node = {
+
+    type: NodeType
+    value: number
+
+    left: Node
+    right: Node
+};
+
+enum NodeType {
+    Error,
+    Number,
+    Positive,
+    Negative,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Pow
+}
+
+enum Precedence {
+    Min = 0,
+    Term = 1,
+    Factor = 2,
+    Power = 3
+}
+
+const precedence = new Map<TokenType, Precedence>([
+    [TokenType.OperationPlus, Precedence.Term],
+    [TokenType.OperationMinus, Precedence.Term],
+    [TokenType.OperationMultiply, Precedence.Factor],
+    [TokenType.OperationDivide, Precedence.Factor],
+    [TokenType.OperationPow, Precedence.Power]
+]);
+
+export class AST {
+
+    index = 0
+    tokens: Token[];
+    curr: Token
+
+    constructor(s : string) {
+        console.clear();
+        this.tokens = tokenize(s);
+        this.curr = this.tokens[0];
+    }
+
+    evaluate(): Number {
+        let root = this.parse_expresion(Precedence.Min);
+        return this.evaluate_node(root);
+    }
+
+    evaluate_node(node: Node): number {
+        console.log("eval:" + node);
+        switch (node.type) {
+            case NodeType.Number:
+                return node.value
+            case NodeType.Add:
+                return this.evaluate_node(node.left) + this.evaluate_node(node.right);
+            case NodeType.Sub:
+                return this.evaluate_node(node.left) - this.evaluate_node(node.right);
+            case NodeType.Div:
+                return this.evaluate_node(node.left) / this.evaluate_node(node.right);
+            case NodeType.Mul:
+                return this.evaluate_node(node.left) * this.evaluate_node(node.right);
+            case NodeType.Pow:
+                return Math.pow(this.evaluate_node(node.left), this.evaluate_node(node.right))
+            default:
+                break;
+        }
+
+        return 0;
+    }
+
+    parse_number(): Node {
+
+        let ret = { type: NodeType.Number, value: this.curr.value } as Node;
+        this.next_token();
+        return ret;
+    }
+
+    parse_terminal_expr(): Node {
+        let ret = {} as Node;
+
+        if (this.curr.type === TokenType.Number) {
+            ret = this.parse_number();
+        } else if (this.curr.type === TokenType.OperationParOpen) {
+            this.next_token()
+            this.curr = this.curr;
+            ret = this.parse_expresion(Precedence.Min);
+            if (this.curr.type === TokenType.OperationParClose) {
+                this.next_token();
+            }
+        } else if (this.curr.type === TokenType.OperationPlus) {
+            this.next_token();
+            ret.type = NodeType.Positive;
+            ret.value = this.parse_terminal_expr().value;
+        } else if (this.curr.type === TokenType.OperationMinus) {
+            this.next_token();
+            ret.type = NodeType.Negative;
+            ret.value = this.parse_terminal_expr().value;
+        } else { return this.error_node() }
+
+        console.log(this.curr)
+        if (this.curr.type === TokenType.Number ||
+            this.curr.type === TokenType.OperationParOpen
+        ) {
+            let new_ret = { type: NodeType.Mul } as Node;
+            new_ret.left = ret;
+            new_ret.right = this.parse_expresion(Precedence.Factor);
+
+            ret = new_ret;
+        }
+
+        return ret;
+    }
+
+    parse_expresion(prev_prec: Precedence): Node {
+        let left = this.parse_terminal_expr();
+        if (this.curr.type === TokenType.End) {
+            return left;
+        }
+        let curr_operator = this.curr;
+        let curr_prec = precedence.get(curr_operator.type);
+
+        while (curr_prec !== Precedence.Min) {
+            if (curr_prec && prev_prec >= curr_prec) {
+                break;
+            } else {
+                this.next_token();
+                this.curr =this.curr;
+                if (this.curr.type === TokenType.End) {
+                    return left;
+                }
+
+                left = this.parse_infix_expr(curr_operator, left);
+                curr_operator = this.curr;
+                curr_prec = precedence.get(curr_operator.type);
+            }
+        }
+        return left;
+    }
+
+    parse_infix_expr(operator: Token, left: Node): Node {
+
+        let ntype: NodeType = NodeType.Error;
+        switch (operator.type) {
+            case TokenType.OperationPlus:
+                ntype = NodeType.Add
+                break;
+            case TokenType.OperationMinus:
+                ntype = NodeType.Sub
+                break;
+            case TokenType.OperationDivide:
+                ntype = NodeType.Div
+                break;
+            case TokenType.OperationMultiply:
+                ntype = NodeType.Mul
+                break;
+            case TokenType.OperationPow:
+                ntype = NodeType.Pow
+                break;
+        }
+        let prec = precedence.get(operator.type) || Precedence.Min;
+        return { type: ntype, left: left, right: this.parse_expresion(prec) } as Node;
+    }
+
+    error_node() {
+        return { type: NodeType.Error } as Node;
+    }
+
+    next_token() {
+        this.index += 1
+        if (this.index >= this.tokens.length) {
+            this.curr = { type: TokenType.End } as Token;
+        } else {
+            this.curr = this.tokens[this.index];
+        }
+    }
+}
