@@ -1,6 +1,6 @@
 import { tokenize, TokenType, type Token } from "./lexer";
 
-type Node = {
+export type Node = {
 
     type: NodeType
     value: number
@@ -9,7 +9,7 @@ type Node = {
     right: Node
 };
 
-enum NodeType {
+export enum NodeType {
     Error,
     Number,
     Positive,
@@ -21,7 +21,7 @@ enum NodeType {
     Pow
 }
 
-enum Precedence {
+export enum Precedence {
     Min = 0,
     Term = 1,
     Factor = 2,
@@ -40,6 +40,7 @@ export class AST {
 
     index = 0
     tokens: Token[]
+    last: Token
     curr: Token
 
     root: Node | undefined
@@ -47,6 +48,7 @@ export class AST {
     constructor(s: string) {
         console.clear();
         this.tokens = tokenize(s);
+        this.last = {} as Token;
         this.curr = this.tokens[0];
         this.root = undefined
     }
@@ -106,13 +108,21 @@ export class AST {
             ret.value = this.parse_terminal_expr().value;
         } else { return this.error_node() }
 
-        
-        if (this.curr.type === TokenType.Number ||
-            this.curr.type === TokenType.OperationParOpen
-        ) {
 
+        if (
+            (
+                this.curr.type === TokenType.Number ||
+                this.curr.type === TokenType.OperationParOpen
+            ) && this.last.type === TokenType.Number
+        ) {
+            console.log(this.curr)
+            console.log(this.last)
             let new_ret = { type: NodeType.Mul } as Node;
-            new_ret.left = ret;
+            if(ret === {} as Node){
+                new_ret.left = {type: NodeType.Number,value: 1} as Node;
+            }else{
+                new_ret.left = ret
+            }
             new_ret.right = this.parse_expresion(Precedence.Factor);
 
             ret = new_ret;
@@ -147,6 +157,28 @@ export class AST {
         return left;
     }
 
+    parse_token_to_node(tok: Token): Node {
+        let ntype: NodeType = NodeType.Error;
+        switch (tok.type) {
+            case TokenType.OperationPlus:
+                ntype = NodeType.Add
+                break;
+            case TokenType.OperationMinus:
+                ntype = NodeType.Sub
+                break;
+            case TokenType.OperationDivide:
+                ntype = NodeType.Div
+                break;
+            case TokenType.OperationMultiply:
+                ntype = NodeType.Mul
+                break;
+            case TokenType.OperationPow:
+                ntype = NodeType.Pow
+                break;
+        }
+        return { type: ntype, value: tok.value } as Node;
+    }
+
     parse_infix_expr(operator: Token, left: Node): Node {
 
         let ntype: NodeType = NodeType.Error;
@@ -176,7 +208,7 @@ export class AST {
     }
 
     next_token() {
-        console.log("Curr token", this.curr)
+        this.last = this.curr
         this.index += 1
         if (this.index >= this.tokens.length) {
             this.curr = { type: TokenType.End } as Token;

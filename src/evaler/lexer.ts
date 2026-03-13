@@ -17,7 +17,7 @@ export type Token = {
     type: TokenType
 };
 
-let operationSet = new Set<string>(["+", "-", "*", "/", "^",")","("]);
+let operationSet = new Set<string>(["+", "-", "*", "/", "^", ")", "("]);
 
 export function tokenize(s: string): Token[] {
 
