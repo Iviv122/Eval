@@ -39,22 +39,24 @@ const precedence = new Map<TokenType, Precedence>([
 export class AST {
 
     index = 0
-    tokens: Token[];
+    tokens: Token[]
     curr: Token
 
-    constructor(s : string) {
+    root: Node | undefined
+
+    constructor(s: string) {
         console.clear();
         this.tokens = tokenize(s);
         this.curr = this.tokens[0];
+        this.root = undefined
     }
-
     evaluate(): Number {
-        let root = this.parse_expresion(Precedence.Min);
-        return this.evaluate_node(root);
+        this.root = this.parse_expresion(Precedence.Min);
+        return this.evaluate_node(this.root);
     }
 
     evaluate_node(node: Node): number {
-        console.log("eval:" + node);
+
         switch (node.type) {
             case NodeType.Number:
                 return node.value
@@ -104,10 +106,11 @@ export class AST {
             ret.value = this.parse_terminal_expr().value;
         } else { return this.error_node() }
 
-        console.log(this.curr)
+        
         if (this.curr.type === TokenType.Number ||
             this.curr.type === TokenType.OperationParOpen
         ) {
+
             let new_ret = { type: NodeType.Mul } as Node;
             new_ret.left = ret;
             new_ret.right = this.parse_expresion(Precedence.Factor);
@@ -131,7 +134,7 @@ export class AST {
                 break;
             } else {
                 this.next_token();
-                this.curr =this.curr;
+                this.curr = this.curr;
                 if (this.curr.type === TokenType.End) {
                     return left;
                 }
@@ -173,6 +176,7 @@ export class AST {
     }
 
     next_token() {
+        console.log("Curr token", this.curr)
         this.index += 1
         if (this.index >= this.tokens.length) {
             this.curr = { type: TokenType.End } as Token;
