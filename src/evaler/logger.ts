@@ -7,7 +7,23 @@ export class ASTLogger {
 
         this.ctx.clearRect(0, 0, 1000, 1000)
         ctx.fillStyle = "white"
+
+        console.log("depth:" + this.get_tree_depth(root));
         this.log(root, 0, 50)
+    }
+
+    get_tree_depth(node:Node): number{
+        
+        let l : number = 0;
+        let r : number = 0;
+        if(node.left){
+            l = this.get_tree_depth(node.left);
+        }
+        if(node.right){
+            r = this.get_tree_depth(node.right);
+        }
+
+        return Math.max(l,r)+1;
     }
 
     place(s: string, x: number, y: number) {
@@ -46,16 +62,14 @@ export class ASTLogger {
     log(node: Node, x: number, y: number) {
 
         let s = this.node_to_text(node);
-
         if (node.left){
-            this.place_line(x,y,x-70,y+45);
-            this.log(node.left,x-70,y+45);
+            this.place_line(x,y,x-50,y+45);
+            this.log(node.left,x-50,y+45);
         } 
         if (node .right){
-            this.place_line(x,y,x+70,y+95);
-            this.log(node.right,x+70,y+95);
+            this.place_line(x,y,x+50,y+95);
+            this.log(node.right,x+50,y+95);
         }
-
         this.place(s,x,y)
 
     }
