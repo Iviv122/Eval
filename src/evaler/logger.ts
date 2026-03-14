@@ -48,12 +48,12 @@ export class ASTLogger {
         let s = this.node_to_text(node);
 
         if (node.left){
-            this.place_line(x,y,x-45,y+45);
-            this.log(node.left,x-45,y+45);
+            this.place_line(x,y,x-70,y+45);
+            this.log(node.left,x-70,y+45);
         } 
         if (node .right){
-            this.place_line(x,y,x+45,y+45);
-            this.log(node.right,x+45,y+45);
+            this.place_line(x,y,x+70,y+95);
+            this.log(node.right,x+70,y+95);
         }
 
         this.place(s,x,y)

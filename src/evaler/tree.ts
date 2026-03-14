@@ -110,18 +110,20 @@ export class AST {
 
 
         if (
-            (
-                this.curr.type === TokenType.Number ||
-                this.curr.type === TokenType.OperationParOpen
-            ) && this.last.type === TokenType.Number
+            this.curr.type === TokenType.Number ||
+            this.curr.type === TokenType.OperationParOpen
         ) {
             console.log(this.curr)
             console.log(this.last)
+
             let new_ret = { type: NodeType.Mul } as Node;
-            if(ret === {} as Node){
-                new_ret.left = {type: NodeType.Number,value: 1} as Node;
-            }else{
-                new_ret.left = ret
+            if (this.last.type === TokenType.Number) {
+                console.log("Used last");
+                console.log(this.last);
+                new_ret.left = { type: NodeType.Number, value: this.last.value } as Node;
+            } else {
+                console.log("Used sign");
+                new_ret.left = { type: NodeType.Number, value: 1 } as Node;
             }
             new_ret.right = this.parse_expresion(Precedence.Factor);
 

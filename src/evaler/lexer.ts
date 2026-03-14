@@ -35,9 +35,12 @@ export function tokenize(s: string): Token[] {
         const c = s[i];
 
         if (c && operationSet.has(c)) {
-            tokens.push(create_number_token(string));
-            tokens.push(create_operation_token(c));
-            string = "";
+            if (string.trim() !== "") {
+                tokens.push(create_number_token(string));
+                tokens.push(create_operation_token(c));
+                string = "";
+            }
+
 
         } else {
             string += c;
