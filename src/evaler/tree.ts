@@ -29,6 +29,9 @@ export enum Precedence {
 }
 
 const precedence = new Map<TokenType, Precedence>([
+    [TokenType.End, Precedence.Min],
+    [TokenType.Err, Precedence.Min],
+    [TokenType.OperationParClose, Precedence.Min],
     [TokenType.OperationPlus, Precedence.Term],
     [TokenType.OperationMinus, Precedence.Term],
     [TokenType.OperationMultiply, Precedence.Factor],
@@ -91,6 +94,7 @@ export class AST {
         console.log("curr ret:", this.curr)
         let ret = {} as Node;
 
+        debugger;
         if (this.curr.type === TokenType.Number) {
             ret = this.parse_number();
         } else if (this.curr.type === TokenType.OperationParOpen) {
@@ -110,7 +114,7 @@ export class AST {
             this.next_token();
             ret.type = NodeType.Negative;
             ret.value = this.parse_terminal_expr().value;
-        } else { return this.error_node() }
+        }
 
 
         if (
@@ -133,7 +137,7 @@ export class AST {
     }
 
     parse_expresion(prev_prec: Precedence): Node {
-        
+        debugger;
 
         let left = this.parse_terminal_expr();
         if (this.curr.type === TokenType.End) {
@@ -150,7 +154,7 @@ export class AST {
                 this.curr = this.curr;
 
 
-                if(this.curr.type == TokenType.OperationParClose){
+                if (this.curr.type == TokenType.OperationParClose) {
                     return left;
                 }
                 if (this.curr.type === TokenType.End) {
