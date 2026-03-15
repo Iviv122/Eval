@@ -43,7 +43,6 @@ export class AST {
 
     index = 0
     tokens: Token[]
-    last: Token
     curr: Token
 
     root: Node | undefined
@@ -51,8 +50,6 @@ export class AST {
     constructor(s: string) {
         console.clear();
         this.tokens = tokenize(s);
-        this.last = {} as Token;
-        console.log(this.tokens);
         this.curr = this.tokens[0];
         this.root = undefined
     }
@@ -91,19 +88,15 @@ export class AST {
     }
 
     parse_terminal_expr(): Node {
-        console.log("curr ret:", this.curr)
         let ret = {} as Node;
 
-        debugger;
         if (this.curr.type === TokenType.Number) {
             ret = this.parse_number();
         } else if (this.curr.type === TokenType.OperationParOpen) {
-            console.log("started parentesis expression")
             this.next_token()
             this.curr = this.curr;
             ret = this.parse_expresion(Precedence.Min);
             if (this.curr.type === TokenType.OperationParClose) {
-                console.log("closed parentesis expression")
                 this.next_token();
             }
         } else if (this.curr.type === TokenType.OperationPlus) {
@@ -123,11 +116,7 @@ export class AST {
         ) {
 
             let new_ret = { type: NodeType.Mul } as Node;
-            if (this.last.type === TokenType.Number) {
-                new_ret.left = { type: NodeType.Number, value: this.last.value } as Node;
-            } else {
-                new_ret.left = { type: NodeType.Number, value: 1 } as Node;
-            }
+            new_ret.left =ret;
             new_ret.right = this.parse_expresion(Precedence.Factor);
 
             ret = new_ret;
@@ -137,12 +126,8 @@ export class AST {
     }
 
     parse_expresion(prev_prec: Precedence): Node {
-        debugger;
 
         let left = this.parse_terminal_expr();
-        if (this.curr.type === TokenType.End) {
-            return left;
-        }
         let curr_operator = this.curr;
         let curr_prec = precedence.get(curr_operator.type) as Precedence;
 
@@ -154,12 +139,6 @@ export class AST {
                 this.curr = this.curr;
 
 
-                if (this.curr.type == TokenType.OperationParClose) {
-                    return left;
-                }
-                if (this.curr.type === TokenType.End) {
-                    return left;
-                }
                 left = this.parse_infix_expr(curr_operator, left);
                 curr_operator = this.curr;
                 curr_prec = precedence.get(curr_operator.type) as Precedence;
@@ -209,7 +188,7 @@ export class AST {
                 ntype = NodeType.Pow
                 break;
         }
-        let prec = precedence.get(operator.type) || Precedence.Min;
+        let prec = precedence.get(operator.type) as Precedence;
         return { type: ntype, left: left, right: this.parse_expresion(prec) } as Node;
     }
 

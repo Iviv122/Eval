@@ -33,19 +33,14 @@ export function tokenize(s: string): Token[] {
     for (let i = 0; i < n; i++) {
 
         const c = s[i];
-        console.log("current char:", c);
-        console.log("current char trimmed:", c);
         if (c && operationSet.has(c)) {
-            console.log("contained:", c);
 
             if (string.trim() !== "") {
 
-                console.log("pushed strin:", string.trim());
                 tokens.push(create_number_token(string));
                 string = "";
             }
 
-            console.log("pushed operator", c);
             tokens.push(create_operation_token(c));
 
         } else {
@@ -55,7 +50,6 @@ export function tokenize(s: string): Token[] {
 
     if (string.trim() !== "") {
         const token_number: Token = {} as Token;
-        console.log(string);
         token_number.value = Number(string)
         token_number.type = TokenType.Number;
         tokens.push(token_number);
