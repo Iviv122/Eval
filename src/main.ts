@@ -4,6 +4,12 @@ import './style.css'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 <div id="container">
+  <p>AST tree calculator</p>
+  <details>
+  <summary>Details</summary>
+  <p>try to write some problem. Like (2(2+2))/5+3(3+(3/3))</p>
+  <p>Display is buggy because i have no idea how to fix it</p>
+</details>
   <input id="my_input">
   <h1 id="result"></h1>
   <article class="process"></article>
