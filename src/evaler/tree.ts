@@ -49,6 +49,7 @@ export class AST {
         console.clear();
         this.tokens = tokenize(s);
         this.last = {} as Token;
+        console.log(this.tokens);
         this.curr = this.tokens[0];
         this.root = undefined
     }
@@ -87,15 +88,18 @@ export class AST {
     }
 
     parse_terminal_expr(): Node {
+        console.log("curr ret:", this.curr)
         let ret = {} as Node;
 
         if (this.curr.type === TokenType.Number) {
             ret = this.parse_number();
         } else if (this.curr.type === TokenType.OperationParOpen) {
+            console.log("started parentesis expression")
             this.next_token()
             this.curr = this.curr;
             ret = this.parse_expresion(Precedence.Min);
             if (this.curr.type === TokenType.OperationParClose) {
+                console.log("closed parentesis expression")
                 this.next_token();
             }
         } else if (this.curr.type === TokenType.OperationPlus) {
@@ -113,16 +117,11 @@ export class AST {
             this.curr.type === TokenType.Number ||
             this.curr.type === TokenType.OperationParOpen
         ) {
-            console.log(this.curr)
-            console.log(this.last)
 
             let new_ret = { type: NodeType.Mul } as Node;
             if (this.last.type === TokenType.Number) {
-                console.log("Used last");
-                console.log(this.last);
                 new_ret.left = { type: NodeType.Number, value: this.last.value } as Node;
             } else {
-                console.log("Used sign");
                 new_ret.left = { type: NodeType.Number, value: 1 } as Node;
             }
             new_ret.right = this.parse_expresion(Precedence.Factor);
@@ -134,26 +133,32 @@ export class AST {
     }
 
     parse_expresion(prev_prec: Precedence): Node {
+        
+
         let left = this.parse_terminal_expr();
         if (this.curr.type === TokenType.End) {
             return left;
         }
         let curr_operator = this.curr;
-        let curr_prec = precedence.get(curr_operator.type);
+        let curr_prec = precedence.get(curr_operator.type) as Precedence;
 
         while (curr_prec !== Precedence.Min) {
-            if (curr_prec && prev_prec >= curr_prec) {
+            if (prev_prec >= curr_prec) {
                 break;
             } else {
                 this.next_token();
                 this.curr = this.curr;
+
+
+                if(this.curr.type == TokenType.OperationParClose){
+                    return left;
+                }
                 if (this.curr.type === TokenType.End) {
                     return left;
                 }
-
                 left = this.parse_infix_expr(curr_operator, left);
                 curr_operator = this.curr;
-                curr_prec = precedence.get(curr_operator.type);
+                curr_prec = precedence.get(curr_operator.type) as Precedence;
             }
         }
         return left;
@@ -182,7 +187,6 @@ export class AST {
     }
 
     parse_infix_expr(operator: Token, left: Node): Node {
-
         let ntype: NodeType = NodeType.Error;
         switch (operator.type) {
             case TokenType.OperationPlus:
