@@ -1,0 +1,14 @@
+Simple AST eval
+
+quick setup
+
+```
+
+git clone https://github.com/Iviv122/Eval
+cd Eval
+npm install
+npm run dev
+
+```
+
+http://localhost:5173/Eval
