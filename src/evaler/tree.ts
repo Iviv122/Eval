@@ -197,7 +197,6 @@ export class AST {
     }
 
     next_token() {
-        this.last = this.curr
         this.index += 1
         if (this.index >= this.tokens.length) {
             this.curr = { type: TokenType.End } as Token;
